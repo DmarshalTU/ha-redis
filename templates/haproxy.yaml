@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-ha-{{ .Values.tenant.name }}
+  labels:
+    app: redis-ha-{{ .Values.tenant.name }}
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: redis-ha-{{ .Values.tenant.name }}
+  template:
+    metadata:
+      name: redis-ha-{{ .Values.tenant.name }}
+      labels:
+        app: redis-ha-{{ .Values.tenant.name }}
+        tier: ha-redis
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                    - redis-ha-{{ .Values.tenant.name }}
+              topologyKey: "kubernetes.io/hostname"
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              tier: ha-redis
+      containers:
+        - name: redis-ha-{{ .Values.tenant.name }}
+          image: haproxy:latest
+          ports:
+            - containerPort: 8080
+            - containerPort: 6379
+            - containerPort: 6380
+          volumeMounts:
+          - name: config
+            mountPath: /usr/local/etc/haproxy/haproxy.cfg
+            subPath: haproxy.cfg
+            readOnly: true
+      restartPolicy: Always
+      volumes:
+      - name: config
+        configMap:
+          name: redis-ha-{{ .Values.tenant.name }}

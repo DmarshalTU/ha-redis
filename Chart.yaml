@@ -1,0 +1,18 @@
+apiVersion: v2
+name: redis
+description: Redis helm chart with HAProxy
+type: application
+version: 1.0.0
+appVersion: 7.0.12
+
+dependencies:
+- name: redis
+  version: 17.14.5
+  repository: https://charts.bitnami.com/bitnami
+- name: haproxy
+  version: 1.19.2
+  repository: https://haproxytech.github.io/helm-charts
+
+maintainers:
+  - name: Denist Tu
+    email: denist@boltinc.com

@@ -1,0 +1,53 @@
+tenant:
+  name: &tenant_name "redis-haproxy"
+redis:
+  fullnameOverride: *tenant_name
+  auth:
+    enabled: false
+    existingSecret: ""
+    existingSecretPasswordKey: ""
+    password: ""
+    sentinel: true
+    usePasswordFiles: false
+  sentinel:
+    enabled: true
+    quorum: 3
+  replica:
+    replicaCount: 3
+    persistence:
+      size: 10Gi    
+    resources:
+      limits:
+        cpu: 250m
+        memory: 6Gi
+      requests:
+        cpu: 5m
+        memory: 100Mi
+    podAnnotations: {}
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: redis
+  metrics:
+    enabled: true
+  global:
+    # storageClass: "longhorn"
+  sysctl:
+    enabled: true
+    image:
+      registry: docker.io
+      repository: busybox
+      tag: 1.36.1
+      pullPolicy: IfNotPresent
+    command:
+      - /bin/sh
+      - -c
+      - |-
+        echo never > /host-sys/kernel/mm/transparent_hugepage/enabled
+        sysctl -w net.core.somaxconn=8096
+    mountHostSys: true
+metallb:
+  addressPool: ""

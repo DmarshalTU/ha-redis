@@ -1,0 +1,21 @@
+tenant:
+  name: "dev"
+  fullnameOverride: &tenant_name "redis-dev"
+  releaseName: *tenant_name
+redis:
+  fullnameOverride: *tenant_name
+  master:
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 50
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+              - key: app.kubernetes.io/instance
+                operator: In
+                values:
+                - redis-ha-dev
+            topologyKey: "node"
+metallb:
+  addressPool: *tenant_name
